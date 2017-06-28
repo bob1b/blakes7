@@ -1,0 +1,2 @@
+FuncShips.py:305: local variable 'speed' is assigned to but never used
+FuncShips.py:317: local variable 'charge_delta' is assigned to but never used
