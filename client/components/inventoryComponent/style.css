@@ -1,0 +1,5 @@
+.inventoryComponent { display:inline-block; }
+.inventoryComponent table { min-width:300px; }
+.inventoryComponent table td:nth-child(1),
+.inventoryComponent table td:nth-child(2),
+.inventoryComponent table td:nth-child(3) { padding:10px; border:1px solid #ccc; text-align:center; }

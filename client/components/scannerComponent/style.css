@@ -1,0 +1,16 @@
+.scannerComponent,
+.scannerComponentList { float:left; margin-right:10px; margin-bottom:10px; }
+.scannerComponent { }
+.scannerComponent h3 { margin:0 0 0 10px; font-size:0.8em; }
+.scannerComponent table { float:left; margin:0 0 9px 8px; font-family:"monospace", "Lucida Sans", "Lucida Sans Typewriter"; border:1px solid #ccc; }
+.scannerComponent .info { margin:10px; font-size:0.8em; }
+
+.scannerComponentList {  }
+.scannerComponentList table { font-size:0.8em; }
+.scannerComponentList table td:nth-child(1),
+.scannerComponentList table td:nth-child(2),
+.scannerComponentList table td:nth-child(3),
+.scannerComponentList table td:nth-child(4),
+.scannerComponentList table td:nth-child(5),
+.scannerComponentList table td:nth-child(6),
+.scannerComponentList table td:nth-child(7) { padding:10px; border:1px solid #ccc; }

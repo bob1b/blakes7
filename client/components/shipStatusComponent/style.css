@@ -1,0 +1,4 @@
+.shipStatusComponent {}
+.shipStatusComponent ul { padding:0; margin-top:0; list-style:none; }
+.shipStatusComponent .speedSelector { position:fixed; display:none; }
+.shipStatusComponent .speedSelector.visible { display:block; }
