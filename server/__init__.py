@@ -31,15 +31,12 @@ class B7(object):
         self.server = FuncServer(self)
         self.util = Util(self) # TODO - might not need to pass self
 
-        print "in __init__()"
-
         # start book keeping function at interval
         Timer(10.0, self.processor).start()
 
         # server runs forever: async callbacks append to event queue which
         # prevents async data handling problems
         self.server.start_server()
-        print "started processor"
 
     # processor (book-keeping) function, loops every second
     def processor(self):

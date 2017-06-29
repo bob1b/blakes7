@@ -188,8 +188,8 @@ class FuncShips(object):
         """ time-based processing for ships in the game, damage fixing,
             recharge, etc """
 
-        for property, value in vars(self.blakes7.util).iteritems():
-            print property, ": ", value
+#       for property, value in vars(self.blakes7.util).iteritems():
+#           print property, ": ", value
 
         elapsed = self.blakes7.util.elapsed_ticks( \
                     self._shipInternal)  # milliseconds

@@ -19,6 +19,7 @@ class FuncServer(object):
     def __init__(self, blakes7):
         """ initialize whatnot """
         self.blakes7 = blakes7
+#       self.blakes7.event_queue.register_event_handler('CLIENT_JOINED'
 
     def get_ip_location_string(self, ip_address):
         """ use remote api to get region and country for a given IP addr """
@@ -48,16 +49,34 @@ class FuncServer(object):
     def client_joined(self, client, server):
         """ Called for every client connecting (after handshake) """
         print "New client connected and was given id %d" % client['id']
-        self.blakes7.event_queue.add_event('CLIENT_JOINED',
-                                           {'clientId':client['id'],
-                                            'clientData':client})
+
+        ## append to clients list
+        self.blakes7.players.client_joined(client['id'], client)
+        self.blakes7.server.send_client(client['id'], {'type':'CONNECTED'})
+
 
 
     def client_left(self, client, server):
         """ Called for every client disconnecting """
         print "Client(%d) disconnected" % client['id']
-        self.blakes7.event_queue.add_event('CLIENT_LEFT',
-                                           {'clientID':client['id']})
+#       self.blakes7.event_queue.add_event('CLIENT_LEFT',
+#                                          {'clientID':client['id']})
+
+        client_id = client['id']
+        player = self.blakes7.players.client_id_to_player(client_id)
+
+        # TODO - remove player or set status to inactive,
+        #         if has a user/pass
+        if player:
+            player['client_id'] = None
+            player['client_data'] = None
+            player['status'] = 'INACTIVE'
+
+        # remove from clients list
+        self.blakes7.players.client_left(client_id)
+
+        # send broadcast message of new player list
+        self.blakes7.players.broadcast_player_list()
 
 
     def message_received(self, client, server, message):
@@ -83,12 +102,19 @@ class FuncServer(object):
         # handle received messages
         if message_dict:
             if message_dict['type'] == 'REQUESTING_PLAYER_NAME':
-                self.blakes7.event_queue.add_event(
-                   'REQUESTING_PLAYER_NAME',
-                   {'clientID':client_id,
-                    'clientData':client,
-                    'name':message_dict['data']['name'],
-                    'password':message_dict['data']['password']})
+                ## TODO - ensure client is not already in the players list
+                name = message_dict['data']['name'],
+                password = message_dict['data']['password']
+                iploc = self.blakes7.server.get_ip_location_string(
+                    client['address'][0]
+                )
+                self.blakes7.players.assign_player_id_to_client(
+                    {'client_id':client_id,
+                     'client_data':client,
+                     'name':name,
+                     'password':password,
+                     'iploc':iploc}
+                )
 
         return message_dict
 
@@ -148,6 +174,8 @@ class FuncServer(object):
         self.server['ws'].set_fn_new_client(self.client_joined)
         self.server['ws'].set_fn_client_left(self.client_left)
         self.server['ws'].set_fn_message_received(self.message_received)
+
+        print "starting websocket listener"
         self.server['ws'].run_forever()
 
 

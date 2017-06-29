@@ -211,8 +211,6 @@ class FuncPlayers(object):
         # send broadcast message of new player list
         self.broadcast_player_list()
 
-        print "players:"
-        pp.pprint(self.players)
         return
 
 
