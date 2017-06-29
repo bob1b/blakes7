@@ -1,0 +1,4 @@
+.locationComponent { display:inline-block; background-color:#ddd; }
+.locationComponent .image{ width:300px; height:200px; background-size:contain; }
+.locationComponent .info { padding:4px; }
+.locationComponent .name { font-weight:bold; }

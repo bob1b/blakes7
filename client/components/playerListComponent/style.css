@@ -1,0 +1,6 @@
+.playerListComponent { display:inline-block; }
+.playerListComponent table { min-width:300px; }
+.playerListComponent table td:nth-child(1),
+.playerListComponent table td:nth-child(2),
+.playerListComponent table td:nth-child(3) { padding:10px; border:1px solid #ccc; text-align:center; }
+.playerListComponent table td.h { background-color:#ffa; }

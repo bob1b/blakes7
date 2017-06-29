@@ -1,0 +1,4 @@
+.shipPowerComponent {}
+.shipPowerComponent ul { padding:0; list-style-type:none; }
+.shipPowerComponent .graph { margin:15px; font-family:'courier-new', monospace; }
+.shipPowerComponent .power { float:right; margin-left:17px; font-size:0.7em; }

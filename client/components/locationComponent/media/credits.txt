@@ -1,0 +1,14 @@
+scorpio image from: http://geekchocolate.co.uk/wp-content/uploads/2015/02/2013_b7-scorpio.jpg
+fedPursuit image from: http://geekchocolate.co.uk/wp-content/uploads/2015/02/2013_b7-pursuit-ships.jpg
+fedPursuit2 image from: http://www.hermit.org/b7/SevenCyc/PicsP/PursuitF.jpeg
+liberator from: http://www.knightwriter.org/AA/DemonB7/SevenCyc/b7/liberator.jpeg
+liberatorPod from: http://www.knightwriter.org/AA/7CYC/c1/AFTER021.jpeg
+londonShip from: http://www.knightwriter.org/AA/DemonB7/SevenCyc/a3/london.jpeg
+protoSpaceAge from: http://www.knightwriter.org/AA/DemonB7/SevenCyc/c5/apolo.jpeg
+cryoCapsule from: http://www.knightwriter.org/AA/DemonB7/SevenCyc/a4/CrogenicCa.jpeg
+spaceCommand from: http://www.knightwriter.org/AA/DemonB7/SevenCyc/a6/SpaceComan.jpeg
+spacePrincess from: http://www.knightwriter.org/AA/7CYC/d10/GOLD001.jpeg
+sleer from: http://www.knightwriter.org/AA/7CYC/d5/ANIMA075.jpeg
+
+## planets
+cygnusAlpha from: http://www.knightwriter.org/AA/DemonB7/SevenCyc/a3/CygnusAlph.jpeg
