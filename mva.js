@@ -341,5 +341,4 @@ function MVA(options){
 
     components[i].component.adapterz = jQuery.extend(true, {}, newAdapters);
   }
-
 }
