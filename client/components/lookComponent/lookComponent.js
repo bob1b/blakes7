@@ -1,11 +1,4 @@
 // look component for blake's 7 game: text description of room, local items, people, directions of movement
-Object.prototype.extend = function(obj) {
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-       this[i] = obj[i];
-    }
-  }
-};
 
 String.prototype.format = function() {
     var formatted = this;

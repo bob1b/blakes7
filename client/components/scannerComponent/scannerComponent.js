@@ -1,11 +1,4 @@
 // location component for blake's 7 game, shows ship type image, type name, and name
-Object.prototype.extend = function(obj) {
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-       this[i] = obj[i];
-    }
-  }
-};
 
 String.prototype.format = function() {
     var formatted = this;

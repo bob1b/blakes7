@@ -92,9 +92,8 @@ function ShipStatusComponent( options ){
 
     // clicked on speed, show speed selector
     function(componentID, views, model, setComponentState){
-console.log('setting up click ' + $('.shipStatusComponent a.showSpeedSelector').length );
-      $('document').on('click', '.shipStatusComponent a.showSpeedSelector',
 //      { componentID:componentID, views:views, model:model, setComponentState:setComponentState },
+      $('body').on('click', '.shipStatusComponent a.showSpeedSelector',
         function( event ){
 console.log('click!');
 console.log(event);

@@ -1,11 +1,4 @@
 // power component for blake's 7 game, shows ship cell charge
-Object.prototype.extend = function(obj) {
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-       this[i] = obj[i];
-    }
-  }
-};
 
 function secondsToMinsOrHours(seconds){
   if (seconds > 3600){

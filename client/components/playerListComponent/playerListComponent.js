@@ -1,11 +1,4 @@
 // playerList component for blake's 7 game, shows the players connected to the game
-Object.prototype.extend = function(obj) {
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-       this[i] = obj[i];
-    }
-  }
-};
 
 String.prototype.format = function() {
     var formatted = this;
