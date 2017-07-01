@@ -15,11 +15,12 @@ class FuncServer(object):
               'stagedDataMessages':[]} # model data messages to be sent later
                                        # to each player by ID
     blakes7 = None
+    clients = None
 
     def __init__(self, blakes7):
         """ initialize whatnot """
         self.blakes7 = blakes7
-#       self.blakes7.event_queue.register_event_handler('CLIENT_JOINED'
+        self.clients = []
 
     def get_ip_location_string(self, ip_address):
         """ use remote api to get region and country for a given IP addr """
@@ -45,38 +46,58 @@ class FuncServer(object):
         return ret_string
 
 
-
     def client_joined(self, client, server):
-        """ Called for every client connecting (after handshake) """
+        """ Called for every client connecting (after handshake)
+             A client joined the game. Add to list of clients """
         print "New client connected and was given id %d" % client['id']
 
-        ## append to clients list
-        self.blakes7.players.client_joined(client['id'], client)
+        self.clients.append({'id':client['id'], 'data':client})
         self.blakes7.server.send_client(client['id'], {'type':'CONNECTED'})
+
+
+    def client_requesting_name(self, client_id, name, password, iploc):
+        """ client has connected and is requesting a player name """
+
+        ## TODO - ensure client is not already in the players list
+        player_id = self.blakes7.players.assign_player_id_to_client(
+            client_id, name, password
+        )
+        values = {'client_id':client_id,
+                  'player_id':player_id,
+                  'name':name,
+                  'password':password,
+                  'iploc':iploc}
+        self.blakes7.players.player_joined(values)
 
 
 
     def client_left(self, client, server):
-        """ Called for every client disconnecting """
-        print "Client(%d) disconnected" % client['id']
-#       self.blakes7.event_queue.add_event('CLIENT_LEFT',
-#                                          {'clientID':client['id']})
+        """ Called when a client disconnects """
+        print "Client (id = %d) disconnected" % client['id']
 
         client_id = client['id']
-        player = self.blakes7.players.client_id_to_player(client_id)
 
-        # TODO - remove player or set status to inactive,
-        #         if has a user/pass
-        if player:
-            player['client_id'] = None
-            player['client_data'] = None
-            player['status'] = 'INACTIVE'
+        # remove player or set to inactive
+        self.blakes7.players.player_left(client_id)
 
         # remove from clients list
-        self.blakes7.players.client_left(client_id)
+        for i in range(0, len(self.clients)):
+            if self.clients[i] and self.clients[i]['id'] == client_id:
+                print "removing client, ID = " + str(client_id)
+                del self.clients[i]
+                # TODO - remove empty array elements
+        pp.pprint(self.clients)
 
-        # send broadcast message of new player list
-        self.blakes7.players.broadcast_player_list()
+
+    def get_client_data(self, client_id):
+        """ for a given client_id, return the client data from the internal
+            list. This will be mainly used for sending messages to clients """
+        for i in range(0, len(self.clients)):
+            if self.clients[i] and self.clients[i]['id'] == client_id:
+                return self.clients[i]['data']
+        print """FuncServer.get_client_data(): unable to get client
+                 data for clientID = %d""" % (client_id)
+        return None
 
 
     def message_received(self, client, server, message):
@@ -102,19 +123,14 @@ class FuncServer(object):
         # handle received messages
         if message_dict:
             if message_dict['type'] == 'REQUESTING_PLAYER_NAME':
-                ## TODO - ensure client is not already in the players list
                 name = message_dict['data']['name'],
                 password = message_dict['data']['password']
                 iploc = self.blakes7.server.get_ip_location_string(
                     client['address'][0]
                 )
-                self.blakes7.players.assign_player_id_to_client(
-                    {'client_id':client_id,
-                     'client_data':client,
-                     'name':name,
-                     'password':password,
-                     'iploc':iploc}
-                )
+                self.client_requesting_name( \
+                    client['id'], name, password, iploc)
+
 
         return message_dict
 
@@ -143,8 +159,8 @@ class FuncServer(object):
                       (player_id, json_message)
                 self.server['ws'].send_message(client_data, json_message)
             else:
-                print "funcServer.send(): could not send message: %s" % \
-                      json_message
+                print """funcServer.send(): No client info! Could not send
+                         message: %s""" % json_message
 
 
     # TODO - merge code with send()?
@@ -158,7 +174,7 @@ class FuncServer(object):
                      to json. Message dict:"""
             pp.pprint(message_dict)
 
-        client_data = self.blakes7.players.get_client_data(client_id)
+        client_data = self.get_client_data(client_id)
         if client_data is not None:
             self.server['ws'].send_message(client_data, json_message)
         else:

@@ -6,12 +6,10 @@ pp = pprint.PrettyPrinter(indent=4)
 class FuncPlayers(object):
     """ blakes 7 player management class """
     players = None
-    clients = None
     blakes7 = None
 
     def __init__(self, blakes7):
         """ initialize players and clients lists """
-        self.clients = []
         self.players = []
         self.blakes7 = blakes7
 
@@ -26,9 +24,10 @@ class FuncPlayers(object):
             return it """
         for player in self.players:
             if player['client_id'] == client_id:
+                print "client %d -> player %d" % (client_id, player['player_id'])
                 return player
-        print """client_id_to_player(): could not find clientID (%d) in
-                 players list""" % (client_id)
+        print "FuncPlayers.client_id_to_player(): could not find clientID " + \
+              "(%d) in players list""" % (client_id)
         return None
 
 
@@ -38,84 +37,35 @@ class FuncPlayers(object):
             messages to a client (port) given by referencing the player's id """
         for player in self.players:
             if player['player_id'] == player_id:
-                return player['client_data']
+                client_id = player['client_id']
+                if client_id is None or client_id < 0:
+                    print "FuncPlayers.player_id_to_client(): client_id " + \
+                          "player with id %d is invalid" % player_id
+                    return None
+                return self.blakes7.server.get_client_data(client_id)
         print """player_id_to_client(): could not find player_id (%d) in
                  players list""" % (player_id)
         return None
 
 
-    def client_joined(self, client_id, client_data):
+    def player_joined(self, values):
+        """ a player has joined the game, create player or set
+            existing player entry to active """
 
-        # TODO - add client to clients[]
-        # TODO - map clientID to playerID
-        # TODO - add player to game model
-        # TODO - process new player
-        # TODO - notify all players that a new player joined
-
-        """ a client (websocket port) joined the game. Add to list
-            of clients """
-        self.clients.append({'id':client_id, 'data':client_data})
-        pp.pprint(self.clients)
-
-
-    def client_left(self, client_id):
-        # TODO - get playerID from clientID
-        # TODO - remove client from []
-        # TODO - remove player from game model
-        # TODO - process new player
-        # TODO - notify all players that player left
-
-        """ a client left, remove the client id from the list """
-        # TODO - will need to deal with player info
-        for i in range(0, len(self.clients)):
-            if self.clients[i] and self.clients[i]['id'] == client_id:
-                print "removing client, ID = " + str(client_id)
-                del self.clients[i]
-                # TODO - remove empty array elements
-        pp.pprint(self.clients)
-
-
-    def get_client_data(self, client_id):
-        """ for a given client_id, return the client data from the internal
-            list. This will be mainly used for sending messages to clients """
-        for i in range(0, len(self.clients)):
-            if self.clients[i] and self.clients[i]['id'] == client_id:
-                return self.clients[i]['data']
-        print """funcPlayers.get_client_data(): unable to get client
-                 data for clientID = %d""" % (client_id)
-        return None
-
-
-    def get_player_by_id(self, player_id):
-        """ look for a player dict matching the given player_id and return it,
-            otherwise, return None """
-        for player in self.players:
-            if player['player_id'] == player_id:
-                return player
-        print """funcPlayers.get_player_by_id(): could not find player_id (%d)
-                 in players list""" % (player_id)
-        return None
-
-
-    def assign_player_id_to_client(self, options):
-        """ options = { client_id, client_data, name, password, iploc)
-            Creates a new player dict and id for a new client """
-        ## TODO - might want to move some of this into another function
-        ### (update player model(s))
-
-        # TODO - if name/pass matches old playerID, use that playerID
-        new_player_id = options['client_id']
+        new_player_id = values['player_id']
         self.players.append({'player_id':new_player_id,
-                             'client_id':options['client_id'],
-                             'client_data':options['client_data'],
+                             'client_id':values['client_id'],
                              'status':'ACTIVE',
-                             'name':options['name'],
-                             'password':options['password'],
-                             'iploc':options['iploc']})
+                             'name':values['name'],
+                             'password':values['password'],
+                             'iploc':values['iploc']})
 
         # send message to client telling about the new player ID
         self.blakes7.server.send(new_player_id, {'type':'SET_PLAYER_ID',
                                                  'data':new_player_id})
+
+        # TODO - notify all players that a new player joined
+        self.broadcast_player_list()
 
         # create new ship for player
         self.blakes7.ships.create_ship('liberator', new_player_id)
@@ -208,17 +158,63 @@ class FuncPlayers(object):
         # multiple models at one time
 
 
-        # send broadcast message of new player list
+    def player_left(self, client_id):
+        """ a player has left the game, set player info to inactive or
+            remove """
+
+        # get playerID from clientID
+        player = self.blakes7.players.client_id_to_player(client_id)
+        if player is None:
+            print "FuncPlayer.player_left(): could not find player info " + \
+                  "by client_id %d" % client_id
+            return
+
+        # TODO - remove player or set status to inactive,
+        #         if has a user/pass
+        if player['name'] and player['password']:
+            player['client_id'] = None
+            player['client_data'] = None
+            player['status'] = 'INACTIVE'
+            print "FuncPlayers.player_left(): set player id %d to inactive " % \
+                  (player['player_id'])
+        else:
+            for i in range(0, len(self.players)):
+                if self.players[i]['client_id'] == client_id:
+                    print "FuncPlayers.player_left(): removing entry for " + \
+                          "player id %d, client id %d" % \
+                               (self.players[i]['player_id'], client_id)
+                    del self.players[i]
+            pp.pprint(self.players)
+
+        # TODO - notify all players that player left
         self.broadcast_player_list()
 
-        return
+
+    def get_player_by_id(self, player_id):
+        """ look for a player dict matching the given player_id and return it,
+            otherwise, return None """
+        for player in self.players:
+            if player['player_id'] == player_id:
+                return player
+        print """funcPlayers.get_player_by_id(): could not find player_id (%d)
+                 in players list""" % (player_id)
+        return None
+
+
+    def assign_player_id_to_client(self, client_id, name, password):
+        """ options = { client_id, client_data, name, password, iploc)
+            Creates a new player dict and id for a new client """
+
+        # TODO - if name/pass matches old playerID, use that playerID
+        return client_id
 
 
     def players_on_ship(self, ship_id):
         """ returns a list of player IDs on a ship identified by id """
         player_ids = []
         for player in self.players:
-            if player['where'] == 'ship' and \
+            if player['status'] == 'ACTIVE' and \
+               player['where'] == 'ship' and \
                player['shipLocInfo'] and \
                player['shipLocInfo']['shipID'] == ship_id:
                 player_ids.append(player['player_id'])
