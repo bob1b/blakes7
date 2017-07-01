@@ -20,7 +20,14 @@ function round2(num){
 
 function ShipStatusComponent( options ){
 
-  this.model = options.model;
+  this.model = {
+    speed:0,
+    loc:{x:0, y:0},
+    speedSelectVisible:false,
+    forceWallActive:true,
+    radiationFlareShieldActive:true,
+    neutronBlastersCleared:true
+  };
 
   // define how the model is displayed to the user
   this.views = [
@@ -87,29 +94,21 @@ function ShipStatusComponent( options ){
          TODO - what about streaming data?
          TODO - what about push events (socket.io?)
   */
-  this.adapters = [
-    // TODO - abstract this and move the actual jquery on() call to mva.js
-
-    // clicked on speed, show speed selector
-    function(componentID, views, model, setComponentState){
-//      { componentID:componentID, views:views, model:model, setComponentState:setComponentState },
-      $('body').on('click', '.shipStatusComponent a.showSpeedSelector',
-        function( event ){
-console.log('click!');
-console.log(event);
-          var speedSelectVisible = model.speedSelectVisible;
-          var newModel = model;
-          if (!speedSelectVisible){
-            newModel.speedSelectVisible = true;
+  this.adapterz = [
+    {
+      type:'jquery-click',
+      selector:'.shipStatusComponent a.showSpeedSelector',
+      callback:function(args){ // args: model (a copy), setComponentState
+          var speedSelectVisible = args.model.speedSelectVisible;
+          if (typeof(speedSelectVisible) === "undefined" || !speedSelectVisible){
+            args.model.speedSelectVisible = true;
           } else {
-            newModel.speedSelectVisible = false;
+            args.model.speedSelectVisible = false;
           }
-console.log('new speedSelectVisible state = ' + newModel.speedSelectVisible);
-// TODO - BOB
-          setComponentState(newModel);
-        }
-      );
-$('.shipStatusComponent a.showSpeedSelector').click();
+		  console.log('new speedSelectVisible state = ' + args.model.speedSelectVisible);
+          args.setComponentState(args.model);
+       }
     }
   ];
+
 }

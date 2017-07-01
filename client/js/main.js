@@ -143,7 +143,7 @@ console.log('on error');
     } */
 
     function onReceive( data ) {
-      console.log("received: " + data);
+//    console.log("received: " + data);
       var obj;
       try {
         obj = JSON.parse(data);
@@ -246,7 +246,7 @@ console.log('on error');
 
 
     // initialize mva controller
-    var mva = new MVA( { watchTimeout:15000 } );
+    window.mva = new MVA( { watchTimeout:15000 } );
 
     // construct the setup for new components, pass options to the constructor 
     var locationConstructor = new LocationComponent( { state:store.location,

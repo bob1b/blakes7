@@ -148,18 +148,19 @@ function MVA(options){
       /* addComponent will look for three components: model, view (renderer or template), and
          adapters, if any */
 
-      if ( !component.model ){
+      if ( typeof(component.model) === "undefined" ){
         debug('MVA.addcomponent(): component is missing a model');
+        return -1;
       }
 
-      if ( !component.views || component.views.length <= 0 ){
+      if ( typeof(component.views) === "undefined" || component.views.length <= 0 ){
         debug('MVA.addcomponent(): component is missing a view');
         return -1;
       } else {
         /* check for destination and renderer or template */
       }
 
-      if ( !component.adapters || component.adapters.length <= 0 ){
+      if ( !component.adapterz || component.adapterz.length <= 0 ){
         debug('MVA.addcomponent(): warning component is missing an adapter. Continuing anyway');
       }
 
@@ -176,25 +177,52 @@ function MVA(options){
           _internal:{ id:newId, active:true }
       });
 
-console.log(components[components.length - 1]._internal);
       updatePrevComponents();
       renderComponent( newId );
       
 
       // add adapters, events which affect the model
-      // TODO - BOB - events don't seem to be applied via $.on() if the component hasn't rendered 
-      //              properly yet
-      var adapters = component.adapters;
-      if ( adapters ){
+      var adapterz = component.adapterz;
+      if ( adapterz && adapterz.length > -1 ){
 
         // loop on the adapters
-        for ( var i = 0; i < adapters.length; i++ ){
+        for ( var i = 0; i < adapterz.length; i++ ){
+          var a = adapterz[i];
 
           // run adapter function with this mapped to the DOM element
-          // TODO - is this realistic? will the element be guaranteed to exist at this point?
-          // TODO - how do we map view destinations to adapters?
-          if ( adapters[i] ){
-            adapters[i]( newId, component.views, component.model, this.setComponentState );
+          if ( typeof(a) !== 'undefined' ){
+            if ( !a.type || a.type === "" ){
+              console.log('addComponent(): component with id "' + newId +
+                          '" has adapter id "' + a + '" with no type. Ignoring');
+            }
+
+            else if ( a.type === "jquery-click" ){
+              var options = {
+                'componentId':newId,
+                'callback':a.callback,
+                '__setState':this.setComponentState,
+                'setComponentState':function(newModel){
+//                 console.log('event.data.component #' + newId);
+                   this.__setState(newId, newModel);
+                }
+              };
+
+              var _that = this;
+              $('body').on('click', a.selector, options, function(event){
+                // add the current component model to event.data, so the
+                // component's adapter has access to the model
+                event.data.model = _that.getComponentState(event.data.componentId).model;
+
+                // invoke callback, passing event.data, which contains: model, setComponentState
+                event.data.callback(event.data); // event.data contains options (model, setComponentState)
+              });
+            }
+
+            else {
+              console.log('addComponent(): component with id "' + newId +
+                          '" has adapter id "' + a + '" with unrecognized type: "' +
+                          a.type + '". Ignoring');
+            }
           }
 
           // TODO - when event is triggered, try to trigger render immediately
@@ -240,9 +268,10 @@ console.log(components[components.length - 1]._internal);
       debug('getComponentState(): component with id "' + componentId + '" is not defined');
       return;
     }
-    var copy = jQuery.extend(true, {}, components[i].component.model);
+    var copy = jQuery.extend(true, {}, components[componentId].component);
     return copy;
   };
+
   this.setComponentState = function( componentId, newState){
     if ( !validateComponentId(componentId) ){
       debug('setComponentState(): component with id "' + componentId + '" is not defined');
@@ -298,7 +327,7 @@ console.log(components[components.length - 1]._internal);
       return;
     }
 
-    var copy = jQuery.extend(true, {}, components[i].component.adapters);
+    var copy = jQuery.extend(true, {}, components[i].component.adapterz);
     return copy;
   };
 
@@ -310,7 +339,7 @@ console.log(components[components.length - 1]._internal);
       return;
     }
 
-    components[i].component.adapters = jQuery.extend(true, {}, newAdapters);
+    components[i].component.adapterz = jQuery.extend(true, {}, newAdapters);
   }
 
 }
