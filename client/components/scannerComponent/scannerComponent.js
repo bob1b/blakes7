@@ -32,7 +32,7 @@ function mapDistancesToSlots( objects, range, gridSize ){
 }
 
 function gridToTable(grid, model){
-  var html = "<h3>Visual Scan</h3><table>";
+  var html = "<h3>Visual Scan</h3><div class='tableWrap'><table class='dataTable'>";
   for ( var x = 0; x < grid.length; x++ ){
     html += "<tr>";
     for ( var y = 0; y < grid[x].length; y++ ){
@@ -41,6 +41,14 @@ function gridToTable(grid, model){
         val = '.';
       }
       html += "<td>" + val + "&nbsp;</td>";
+    }
+    html += "</tr>";
+  }
+  html +="</table><table class='bgTable'>";
+  for ( var x = 0; x < grid.length; x++ ){
+    html += "<tr>";
+    for ( var y = 0; y < grid[x].length; y++ ){
+      html += "<td>.&nbsp;</td>";
     }
     html += "</tr>";
   }
