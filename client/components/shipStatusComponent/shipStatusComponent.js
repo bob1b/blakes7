@@ -29,6 +29,16 @@ function ShipStatusComponent( options ){
     showSettings:false
   };
 
+  this.model_server_sync_keys = [
+    "speed", "loc", "forceWallActive", "radiationFlareShieldActive", "neutronBlastersCleared"
+  ];
+/* TODO 
+  this.model_server_sync_all_but_these_keys = [ 'settingsVisible' ];
+*/
+
+  this.model_server_sync_send = function( vals ){};
+  this.model_server_sync_receive = function( setComponentState ){ };
+
   function _format_speed(model, type){
 	  var _spd = 'stopped';
       var speed_num  = 0;
