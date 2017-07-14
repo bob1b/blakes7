@@ -235,6 +235,14 @@ class FuncPlayers(object):
                       (ship['ship_id'], player_id)
         return
 
+    def get_player_ship_id(self, player):
+        """ if player is on a ship, return the ship id """
+        # TODO - add error checking
+        if player is not None:
+            if player['where'] == 'ship':
+                if player['shipLocInfo']:
+                    return player['shipLocInfo']['shipID']
+        return None
 
     def generate_player_list(self):
         """ creates list of active players for sending as a 'Player List' to

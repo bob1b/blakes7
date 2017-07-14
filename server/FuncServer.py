@@ -131,6 +131,15 @@ class FuncServer(object):
                 self.client_requesting_name( \
                     client['id'], name, password, iploc)
 
+            # check for messages to do with different model updates
+            player = self.blakes7.players.client_id_to_player(client_id)
+
+            player_id = None
+            if player and 'player_id' in player:
+                player_id = player['player_id']
+
+            self.blakes7.ships.process_message(client['id'], player_id, message_dict)
+
 
         return message_dict
 

@@ -19,7 +19,7 @@ class FuncShips(object):
     ship_model = {
       'shipType':'unknown',
       'navigation': {'position':{'x':0, 'y':0}, # based on character?
-                     'speed':1,
+                     'speed':0,
                      'direction':45,
                      'destination':None},
       'powerCells':{},  # probably fully charged unless ship has history
@@ -213,6 +213,15 @@ class FuncShips(object):
                  in ships list""" % (ship_id)
         return None
 
+    def get_ship_index_by_id(self, ship_id):
+        """ looks for ship dict with given ship_id, returns dict or None """
+        for idx, ship in enumerate(self._shipInternal['ships']):
+            if ship['shipID'] == ship_id:
+                return idx
+        print """funcShips.get_ship_index_by_id(): could not find shipID (%d)
+                 in ships list""" % (ship_id)
+        return None
+
 
     def create_ship(self, ship_type, player_id):
         """ creates a ship based on ship_type and assigns if to a player
@@ -350,6 +359,34 @@ class FuncShips(object):
             self.send_ship_data(ship, player_id)
         return
 
+    def process_message(self, client_id, player_id, message_dict):
+        """ processes a message from a client if it is relevant to ships """
+
+        the_type = message_dict['type']
+        the_data = message_dict['data']
+
+        if not the_type:
+            print ("FuncShips.process_message(): message from client id = %d has no " + \
+                   "type. Ignoring") % (client_id)
+            return
+
+        if not the_data:
+            print ("FuncShips.process_message(): message from client id = %d has no " + \
+                   "data. Ignoring") % (client_id)
+            return
+
+        print ("FuncShips.process_message(): client_id = %d, player_id = %d") % (client_id, player_id)
+        player = self.blakes7.players.get_player_by_id(player_id)
+        ship_id = self.blakes7.players.get_player_ship_id(player)
+        ship = self.get_ship_by_id(ship_id)
+
+        if the_type == 'shipStatus':
+            for item in the_data:
+                pp.pprint(item)
+                if item['key'] == "forceWallActive":
+                    print "new force wall active state = %s" % item['value']
+                    self.set_force_wall(ship_id, item['value'])
+
 
     def _send_ship(self, ship_id, message_dict):
         """ send data message to all players in a given ship """
@@ -372,8 +409,18 @@ class FuncShips(object):
         return
 
 
-    def raise_force_wall(self, ship):
-        """ player has requested to raise the force wall of his ship """
+    def set_force_wall(self, ship_id, new_value):
+        """ player has requested to raise/lower force wall of his ship """
+        ship_index = self.get_ship_index_by_id(ship_id)
+        if ship_index == None:
+            print "FuncShips.set_force_wall(): ship_index is None!"
+            return
+
+        # TODO - ensure ship has a force wall
+        if new_value == True:
+            self._shipInternal['ships'][ship_index]['force_wall'] = True
+        else:
+            self._shipInternal['ships'][ship_index]['force_wall'] = False
         return
 
 
