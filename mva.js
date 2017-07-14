@@ -1,7 +1,6 @@
-
-
 // constructor
 function MVA(options){
+  // TODO - add require() for deep-diff
   var componentCounter = 0;
   var components = [];
   var prevComponents = [];
@@ -16,7 +15,7 @@ function MVA(options){
       messageLevel = 0;
     }
 
-    if (1 || debugLevel >= messageLevel){
+    if (0 && debugLevel >= messageLevel){
       console.log(message);
     }
   }
@@ -51,8 +50,8 @@ function MVA(options){
       return;
     }
 
-    debug('rendering component #' + componentId + ' "' + components[componentId].name + '"');
-    debug(components[componentId]);
+    console.log('rendering component #' + componentId + ' "' + components[componentId].name + '"');
+    console.log(components[componentId]);
 
     var numViews = components[componentId].component.views.length;
 
@@ -65,9 +64,6 @@ function MVA(options){
         debug('renderComponent(): could not find destination element in DOM: "' + view.destination + '"');
         continue;
       }
-
-      debug('view  = ');
-      debug(view);
 
       if ( view.renderer ){
         var _html = view.renderer( components[componentId].component.model );
@@ -103,44 +99,6 @@ function MVA(options){
     }
   }
 
-  // TODO
-  function _sync_if_needed(component){
-      var syncs = component.model_server_sync_keys;
-console.log("_sync_if_needed(), component:");
-      if ( syncs && typeof(syncs) !== "undefined" && syncs.length > 0 ){
-        // TODO - find changed model key
-        var changed_key = "forceWallActive";
-
-        // check if changed model key is in the list of syncable keys
-        var do_sync = false;
-        for ( i = 0; i < syncs.length; i++ ){
-          // found a syncable changed key, send the whole syncable model -
-          // any other changed keys will be synced as well
-          if ( syncs[i] === changed_key ){
-console.log(syncs[i] + "===" + changed_key);
-            do_sync = true;
-            break;
-          }
-        }
-
-        if (do_sync){
-console.log('doing sync');
-          var vals = _generate_sync_values(component);
-console.log(vals);
-
-          if ( typeof(component.model_server_sync_send) !== "undefined" ){
-            // TODO - use model_server_sync_send() function to create message
-            //        and send to the server
-            component.model_server_sync_send( vals );
-          } else {
-            debug("checkForStateChanges(): component #" + i + " has keys that " +
-                  "need to be synced with the server, but there is no " +
-                  "model_server_sync_send() function");
-          }
-        }
-      }
-  }
-
   // generate array of syncable values that will be later sent to the server
   function _generate_sync_values(component){
 
@@ -161,24 +119,70 @@ console.log(vals);
     return vals;
   }
 
+  function _checkComponentStateChanged(component_id, component, prevComponent){
+    var diffs;
+	var sync_keys = component.component.model_server_sync_keys;
+    if ( typeof(sync_keys) === "undefined" || !$.isArray(sync_keys) ){
+      return;
+    }
+
+    if ( component._internal.active ){
+
+      if ( JSON.stringify(     component.component.model ) !==
+           JSON.stringify( prevComponent.component.model ) ){
+
+        // TODO - find differences
+        if ( typeof(DeepDiff) !== "undefined" ){
+          diffs = DeepDiff(prevComponent.component.model, component.component.model);
+
+          var sync_vals = [];
+          for (var i = 0; i < diffs.length; i++){
+            var diff = diffs[i];
+            console.log(diff.path);
+
+            // TODO check if path is in the syncable elements array
+            var dotted_path = diff.path.join('.');
+            for (var j = 0; j < sync_keys.length; j++){
+              if (sync_keys[j] === dotted_path ){
+                sync_vals.push({'key':dotted_path, 'value':diff.rhs});
+              }
+            }
+          }
+
+          // check if we need to synchronize
+          if ( sync_vals.length > 0 ){
+            if ( typeof(component.component.model_server_sync_send) !== "undefined" ){
+              // TODO - use model_server_sync_send() function to create message
+              //        and send to the server
+              component.component.model_server_sync_send( sync_vals );
+            } else {
+              console.log("sync_if_needed(): component #" + i + " has keys that " +
+                "need to be synced with the server, but there is no " +
+                "model_server_sync_send() function");
+            }
+
+          } else {
+            console.log("checkComponentStateChanged(): DeepDiff is not available");
+          }
+
+          renderComponent(component_id);
+        }
+      }
+    }
+  }
 
   // compare the previous state of each component to the current state. If there has been a
   // state change, re-render the component
-  function checkForStateChanges(){
+  function checkForStateChanges(component_id){
+    if ( typeof(component_id) !== "undefined" ){
+      var component = components[component_id];
+console.log("checkForStateChanges("+component.name+")");
+      _checkComponentStateChanged(component_id, component, prevComponents[component_id]);
+    } else {
 console.log("checkForStateChanges()");
-    for ( var i = 0; i < componentCounter; i++ ){
-      // compare states to prev states
-      if ( components[i]._internal.active ){
-        if ( JSON.stringify(     components[i].component.model ) !==
-             JSON.stringify( prevComponents[i].component.model ) ){
-          debug('state change component #' + i + ' "' + components[i].name + '"');
-
-          // check if we need to synchronize
-console.log('calling _sync_if_needed on component ' + i);
-          _sync_if_needed(components[i].component);
-
-          renderComponent(i);
-        }
+      for ( var i = 0; i < componentCounter; i++ ){
+        // compare states to prev states
+        _checkComponentStateChanged(component_id, components[i], prevComponents[i]);
       }
     }
 
@@ -207,7 +211,8 @@ console.log('calling _sync_if_needed on component ' + i);
                 'callback':a.callback,
                 '__setState':_that.setComponentState,
                 'setComponentState':function(newModel){
-//                 console.log('event.data.component #' + component_id);
+//                 console.log('in component adapter setComponentState()');
+ //                console.log(newModel);
                    this.__setState(component_id, newModel);
                 }
               };
@@ -216,12 +221,13 @@ console.log('calling _sync_if_needed on component ' + i);
               $('body').on('click', a.selector, options, function(event){
                 // add the current component model to event.data, so the
                 // component's adapter has access to the model
-                event.data.model = _that.getComponentState(event.data.componentId).model;
+                var component_id = event.data.componentId;
+                event.data.model = _that.getComponentState(component_id).model;
 
                 // invoke callback, passing event.data, which contains: model, setComponentState
                 event.data.callback(event.data); // event.data contains options (model, setComponentState)
 
-                checkState();
+                checkState(component_id);
               });
             }
 
@@ -264,7 +270,8 @@ console.log('calling _sync_if_needed on component ' + i);
          adapters, if any */
 
       if ( typeof(component.model) === "undefined" ){
-        debug('MVA.addcomponent(): component is missing a model');
+        debug('MVA.addcomponent(): warning: component is missing a model at creation:');
+        debug(component);
         return -1;
       }
 
@@ -305,7 +312,6 @@ console.log('calling _sync_if_needed on component ' + i);
       
       // add adapters, events which affect the model
       _add_adapters(this, newId, component.adapterz);
-
 
 
       return newId;
@@ -364,8 +370,8 @@ console.log('calling _sync_if_needed on component ' + i);
     /* debug('setComponentState: setting component ' + componentId + ' state. New model: ');
     debug( components[componentId].component.model ); */
 
-    // TODO - render only if state is different
-    renderComponent(componentId);
+    // render only if state is different
+    checkForStateChanges(componentId);
   };
 
   // TODO - how should this be different from the previous function?

@@ -36,8 +36,18 @@ function ShipStatusComponent( options ){
   this.model_server_sync_all_but_these_keys = [ 'settingsVisible' ];
 */
 
-  this.model_server_sync_send = function( vals ){};
-  this.model_server_sync_receive = function( setComponentState ){ };
+  function generate_server_message( vals ){
+    var obj = { type:"shipStatus", data:vals };
+    return JSON.stringify( obj );
+  };
+
+  this.model_server_sync_send = function( vals ){
+    var message = generate_server_message( vals );
+    store.webSocket.send(message);
+  };
+
+  this.model_server_sync_receive = function( setComponentState ){
+  };
 
   function _format_speed(model, type){
 	  var _spd = 'stopped';
