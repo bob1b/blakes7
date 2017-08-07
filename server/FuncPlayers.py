@@ -253,13 +253,17 @@ class FuncPlayers(object):
             return player['status'] == 'ACTIVE'
 
         player_list = []
-        for player in self.players:
-            if is_active(player):
-                player_list.append({'id':player['player_id'],
-                                    'name':player['name'],
-                                    'status':player['status'],
-                                    'iploc':player['iploc']})
-        return player_list
+        try:
+            for player in self.players:
+                if is_active(player):
+                    player_list.append({'id':player['player_id'],
+                                        'name':player['name'],
+                                        'status':player['status'],
+                                        'iploc':player['iploc']})
+            return player_list
+        except:
+            print "FuncPlayers.generate_player_list(): error generating list"
+            return []
 
 
     def broadcast_player_list(self):
