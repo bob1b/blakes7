@@ -36,7 +36,7 @@ class EventQueue(object):
         """ pop and process each saved event. Not sure if the code run
             for a particular event should be kept here, since it is
             not really to do with events, but rather game logic """
-        print "in FuncEventQueue.process_events()"
+#       print "in FuncEventQueue.process_events()"
         while self.events:
             event = self.events.pop(0)
 

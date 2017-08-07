@@ -144,11 +144,6 @@ class FuncServer(object):
         return message_dict
 
 
-    def send_all(self, server, message):
-        """ sends a message to all players """
-        self.blakes7.players.send_player(-1, message)
-
-
     def send(self, player_id, message_dict):
         """ converts the message dict to JSON and sends to a player given by
             player id """
@@ -160,16 +155,19 @@ class FuncServer(object):
             pp.pprint(message_dict)
             return
 
-        # send to all
+        # send to all players
         if player_id < 0:
             # TODO - perhaps should get list of clients and check if each has
-            #        an active player associated?
-            for player_id in self.blakes7.players.get_player_ids():
+            #        an active player associated? instead doing the reverse
+            player_ids = self.blakes7.players.get_player_ids()
+            for player_id in player_ids:
                 client_data = self.blakes7.players.player_id_to_client(player_id)
-                if client_data:
+                print "funcServer.send(): sending to client %d, json = %s" % \
+                      (player_id, json_message)
+                if client_data is not None:
                     self.server['ws'].send_message(client_data, json_message)
                 else:
-                    print "FuncServer.send(): could not send to all, missing " + \
+                    print "FuncServer.send(): could not send to every player, missing " + \
                            "client data for player #%d" % player_id
 
         # send to single player
