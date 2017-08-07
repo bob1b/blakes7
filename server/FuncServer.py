@@ -85,8 +85,7 @@ class FuncServer(object):
             if self.clients[i] and self.clients[i]['id'] == client_id:
                 print "removing client, ID = " + str(client_id)
                 del self.clients[i]
-                # TODO - remove empty array elements
-        pp.pprint(self.clients)
+                break
 
 
     def get_client_data(self, client_id):

@@ -184,7 +184,7 @@ class FuncPlayers(object):
                           "player id %d, client id %d" % \
                                (self.players[i]['player_id'], client_id)
                     del self.players[i]
-            pp.pprint(self.players)
+                    break
 
         # TODO - notify all players that player left
         self.broadcast_player_list()
