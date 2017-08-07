@@ -82,7 +82,7 @@ body #waitingForNameContent form .cols .col2 { float:right; }
 body #waitingForNameContent form input { width:63%; margin:5px 0; padding:5px; font-size:0.90em; color:#555; }
 body #waitingForNameContent form label {}
 body #waitingForNameContent form .note { font-size:0.8em; }
-body #waitingForNameContent form input[type=submit] { display:block; width:10%; padding 0.7% 1%; margin:0 auto; font-size:1em; }
+body #waitingForNameContent form input[type=submit] { display:block; width:10%; padding 0.7% 1%; margin:0 auto; min-width:150px; font-size:1em; }
 body.waitingForName #waitingForNameContent { display:block; }
 
 
