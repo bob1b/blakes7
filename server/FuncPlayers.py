@@ -244,18 +244,26 @@ class FuncPlayers(object):
                     return player['shipLocInfo']['shipID']
         return None
 
+    def is_active(self, player):
+        """ is this player active? """
+        return player['status'] == 'ACTIVE'
+
+    def get_player_ids(self):
+        player_ids = []
+        for player in self.players:
+            if self.is_active(player):
+                player_ids.append(player['player_id'])
+        return player_ids
+
     def generate_player_list(self):
         """ creates list of active players for sending as a 'Player List' to
             all players """
 
-        def is_active(player):
-            """ is this player active? """
-            return player['status'] == 'ACTIVE'
 
         player_list = []
         try:
             for player in self.players:
-                if is_active(player):
+                if self.is_active(player):
                     player_list.append({'id':player['player_id'],
                                         'name':player['name'],
                                         'status':player['status'],
@@ -268,8 +276,9 @@ class FuncPlayers(object):
 
     def broadcast_player_list(self):
         """ sends a list of players to all players """
+        player_list = self.generate_player_list()
         self.blakes7.server.send(-1, {'type':'PLAYER_LIST',
-                                      'data':self.generate_player_list()})
+                                      'data':player_list})
 
 
     def create_player(self, client_id):

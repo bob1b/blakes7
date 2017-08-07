@@ -159,8 +159,20 @@ class FuncServer(object):
                      to json. Message dict:"""
             pp.pprint(message_dict)
             return
+
+        # send to all
         if player_id < 0:
-            self.server['ws'].send_message_to_all(json_message)
+            # TODO - perhaps should get list of clients and check if each has
+            #        an active player associated?
+            for player_id in self.blakes7.players.get_player_ids():
+                client_data = self.blakes7.players.player_id_to_client(player_id)
+                if client_data:
+                    self.server['ws'].send_message(client_data, json_message)
+                else:
+                    print "FuncServer.send(): could not send to all, missing " + \
+                           "client data for player #%d" % player_id
+
+        # send to single player
         else:
             client_data = self.blakes7.players.player_id_to_client(player_id)
             if client_data is not None:
